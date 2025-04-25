@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { Doctor } from '../types/types';
 import { getAutocompleteSuggestions } from '../utils/filterUtils';
 
@@ -62,6 +62,13 @@ const SearchBar = ({ doctors, searchQuery, onSearchChange }: SearchBarProps) => 
     // The search is already updated via the onChange handler
   };
 
+  const clearSearch = () => {
+    onSearchChange('');
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
   return (
     <div className="relative w-full">
       <form onSubmit={handleSubmit} className="flex w-full">
@@ -70,39 +77,56 @@ const SearchBar = ({ doctors, searchQuery, onSearchChange }: SearchBarProps) => 
             ref={inputRef}
             type="text"
             data-testid="autocomplete-input"
-            className="block w-full py-3 px-4 pl-12 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Search Symptoms, Doctors, Specialists, Clinics"
+            className="block w-full py-4 px-4 pl-12 border-2 border-blue-300 rounded-l-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-800 shadow-sm"
+            placeholder="Search Doctors, Specialists, Symptoms or Clinics..."
             value={searchQuery}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             onFocus={() => searchQuery && suggestions.length > 0 && setShowSuggestions(true)}
           />
           <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-            <Search className="h-5 w-5 text-gray-400" />
+            <Search className="h-5 w-5 text-blue-500" />
           </div>
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="absolute inset-y-0 right-0 flex items-center pr-4"
+            >
+              <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+            </button>
+          )}
         </div>
         <button 
           type="submit"
-          className="bg-blue-600 text-white px-4 ml-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-blue-600 text-white px-6 rounded-r-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors shadow-sm font-medium"
         >
-          <Search className="h-5 w-5" />
+          Search
         </button>
       </form>
       
       {showSuggestions && (
         <div 
           ref={suggestionsRef}
-          className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+          className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto"
         >
           <ul className="py-1">
             {suggestions.map((doctor) => (
               <li 
                 key={doctor.id}
                 data-testid="suggestion-item"
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer transition-colors"
+                className="px-4 py-3 hover:bg-blue-50 cursor-pointer transition-colors border-b border-gray-100 last:border-b-0"
                 onClick={() => handleSuggestionClick(doctor.name)}
               >
-                {doctor.name}
+                <div className="flex items-center">
+                  <Search className="h-4 w-4 text-blue-500 mr-2" />
+                  <div>
+                    <div className="font-medium text-gray-800">{doctor.name}</div>
+                    {doctor.specialty && doctor.specialty.length > 0 && (
+                      <div className="text-xs text-gray-500">{doctor.specialty[0]}</div>
+                    )}
+                  </div>
+                </div>
               </li>
             ))}
           </ul>

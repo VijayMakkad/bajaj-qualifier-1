@@ -49,7 +49,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   );
 
   return (
-    <div className="bg-white shadow-sm rounded-lg">
+    <div className="bg-white shadow-sm rounded-lg overflow-hidden max-h-screen">
       {/* Sort By Section */}
       <div className="border-b">
         <div 
@@ -151,7 +151,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               />
             </div>
             
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
               {filteredSpecialties.map(specialty => (
                 <div key={specialty} className="flex items-center">
                   <input
@@ -175,8 +175,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
         )}
       </div>
       
-      {/* Consultation Type Section */}
-      <div>
+      {/* Consultation Type Section - Fixed to ensure visibility */}
+      <div className="pb-1"> 
         <div 
           className="flex justify-between items-center cursor-pointer p-4"
           onClick={() => toggleSection('consultationType')}

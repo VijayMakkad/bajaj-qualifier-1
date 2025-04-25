@@ -1,5 +1,19 @@
 import { Doctor, ConsultationType, SortOption } from '../types/types';
 
+// Helper function to extract numeric value from fee string
+const extractNumericFee = (fee: string | number): number => {
+  if (typeof fee === 'number') return fee;
+  // Extract only digits from strings like "₹ 500"
+  return parseInt(fee.replace(/[^\d]/g, '')) || 0;
+};
+
+// Helper function to extract numeric value from experience string
+const extractNumericExperience = (exp: string | number): number => {
+  if (typeof exp === 'number') return exp;
+  // Extract only digits from strings like "13 Years of experience"
+  return parseInt(exp.replace(/\D/g, '')) || 0;
+};
+
 export const filterDoctors = (
   doctors: Doctor[],
   searchQuery: string,
@@ -20,28 +34,39 @@ export const filterDoctors = (
   // Filter by consultation type
   if (consultationType) {
     filteredDoctors = filteredDoctors.filter(doctor => {
-      return consultationType === 'Video Consult'
-        ? doctor.availability?.videoConsult
-        : consultationType === 'In Clinic'
-        ? doctor.availability?.inClinic
-        : true;
+      if (consultationType === 'Video Consult') {
+        return doctor.video_consult || doctor.availability?.videoConsult;
+      } else if (consultationType === 'In Clinic') {
+        return doctor.in_clinic || doctor.availability?.inClinic;
+      }
+      return true;
     });
   }
 
   // Filter by specialties
   if (specialties.length > 0) {
-    filteredDoctors = filteredDoctors.filter(doctor =>
-      specialties.some(specialty =>
-        doctor.specialty?.includes(specialty)
-      )
-    );
+    filteredDoctors = filteredDoctors.filter(doctor => {
+      // Check both new and old specialty structures
+      return specialties.some(specialty => 
+        (doctor.specialities && doctor.specialities.some(s => s.name === specialty)) ||
+        (doctor.specialty && doctor.specialty.includes(specialty))
+      );
+    });
   }
 
   // Sort by fees or experience
   if (sortBy === 'fees') {
-    filteredDoctors.sort((a, b) => a.fees - b.fees); // ascending
+    filteredDoctors.sort((a, b) => {
+      const feeA = extractNumericFee(a.fees);
+      const feeB = extractNumericFee(b.fees);
+      return feeA - feeB; // ascending
+    });
   } else if (sortBy === 'experience') {
-    filteredDoctors.sort((a, b) => b.experience - a.experience); // descending
+    filteredDoctors.sort((a, b) => {
+      const expA = extractNumericExperience(a.experience);
+      const expB = extractNumericExperience(b.experience);
+      return expB - expA; // descending
+    });
   }
 
   return filteredDoctors;
@@ -53,9 +78,18 @@ export const getUniqueSpecialties = (doctors: Doctor[] | undefined): string[] =>
   const specialtiesSet = new Set<string>();
 
   doctors.forEach(doctor => {
-    doctor.specialty?.forEach(specialty => {
-      if (specialty) specialtiesSet.add(specialty);
-    });
+    // Handle both new and old specialty structures
+    if (doctor.specialities) {
+      doctor.specialities.forEach(specialty => {
+        if (specialty.name) specialtiesSet.add(specialty.name);
+      });
+    }
+    
+    if (doctor.specialty) {
+      doctor.specialty.forEach(specialty => {
+        if (specialty) specialtiesSet.add(specialty);
+      });
+    }
   });
 
   return Array.from(specialtiesSet).sort();

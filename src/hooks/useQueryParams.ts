@@ -38,7 +38,7 @@ export const useQueryParams = () => {
       params.set('sort', filters.sortBy);
     }
     
-    setSearchParams(params);
+    setSearchParams(params, { replace: true });
   }, [filters, setSearchParams]);
 
   const updateFilters = (newFilters: Partial<FilterState>) => {
